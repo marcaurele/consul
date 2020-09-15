@@ -51,6 +51,16 @@ func TestKeyringCommand(t *testing.T) {
 
 	// Rotate to key2, remove key1
 	useKey(t, a1.HTTPAddr(), key2)
+
+	// New key should be present
+	out = listPrimaryKeys(t, a1.HTTPAddr())
+	if strings.Contains(out, key1) {
+		t.Fatalf("bad: %#v", out)
+	}
+	if !strings.Contains(out, key2) {
+		t.Fatalf("bad: %#v", out)
+	}
+
 	removeKey(t, a1.HTTPAddr(), key1)
 
 	// Only key2 is present now
@@ -124,6 +134,19 @@ func listKeys(t *testing.T, addr string) string {
 	c := New(ui)
 
 	args := []string{"-list", "-http-addr=" + addr}
+	code := c.Run(args)
+	if code != 0 {
+		t.Fatalf("bad: %d. %#v", code, ui.ErrorWriter.String())
+	}
+
+	return ui.OutputWriter.String()
+}
+
+func listPrimaryKeys(t *testing.T, addr string) string {
+	ui := cli.NewMockUi()
+	c := New(ui)
+
+	args := []string{"-list-primary", "-http-addr=" + addr}
 	code := c.Run(args)
 	if code != 0 {
 		t.Fatalf("bad: %d. %#v", code, ui.ErrorWriter.String())
